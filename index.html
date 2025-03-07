@@ -14,6 +14,7 @@
             max-width: 300px;
             margin: 50px auto;
             text-align: center;
+            padding-bottom: 60px;
         }
         input, select, button {
             display: block;
@@ -71,6 +72,35 @@
         }
         .suggestions div:hover, .suggestions div.active {
             background: #f8f9fa;
+        }
+                /* Footer Styling */
+                footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            /*
+            background: #222;
+            color: white;
+            */
+            background: #e8ad20;
+            color: #222;
+            text-align: center;
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+        footer a {
+            color: #222;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        footer img {
+            width: 24px;
+            height: 24px;
         }
     </style>
 </head>
@@ -188,5 +218,20 @@
             }
         });
     </script>
+    <!-- Footer -->
+    <footer>
+        <a href="https://discord.com/channels/1309686179372732496/1309901208751702037" target="_blank">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discord.svg" alt="Discord">
+            Official Plex Discord
+        </a>
+        <a href="https://github.com/KeatonMayhem" target="_blank">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@9.21.0/icons/github.svg" alt="Github">
+            Github
+        </a>
+        <a href="https://venmo.com/YOUR-VENMO-ID" target="_blank">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/venmo.svg" alt="Venmo">
+            Buy Me a Coffee
+        </a>
+    </footer>
 </body>
 </html>
