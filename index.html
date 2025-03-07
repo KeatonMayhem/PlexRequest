@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plex Request Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        input, select, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        .suggestions {
+            background: #fff;
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            position: absolute;
+            width: 90%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+        .suggestions div:hover, .suggestions div.active {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h2>Request a Movie or TV Show</h2>
+    <form id="requestForm">
+        <input type="text" id="username" placeholder="Your Name" required>
+        <select id="type">
+            <option value="movie">Movie</option>
+            <option value="tv">TV Show</option>
+        </select>
+        <input type="text" id="title" placeholder="Search for a title..." autocomplete="off" required>
+        <div class="suggestions" id="suggestions"></div>
+        <button type="submit">Submit Request</button>
+    </form>
+
+    <script>
+        const API_KEY = 'YOUR_TMDB_API_KEY';
+        const AIRTABLE_API_KEY = 'YOUR_AIRTABLE_API_KEY';
+        const AIRTABLE_BASE_ID = 'YOUR_AIRTABLE_BASE_ID';
+        const AIRTABLE_TABLE_NAME = 'Requests';
+
+        let activeSuggestionIndex = -1;
+        const titleInput = document.getElementById('title');
+        const suggestionsBox = document.getElementById('suggestions');
+        
+        titleInput.addEventListener('input', async function() {
+            let query = this.value;
+            let type = document.getElementById('type').value;
+            if (query.length < 2) {
+                suggestionsBox.innerHTML = '';
+                return;
+            }
+            
+            let endpoint = `https://api.themoviedb.org/3/search/${type}?api_key=${API_KEY}&query=${query}`;
+            let response = await fetch(endpoint);
+            let data = await response.json();
+            suggestionsBox.innerHTML = '';
+            activeSuggestionIndex = -1;
+
+            if (data.results.length === 0) {
+                suggestionsBox.innerHTML = '<div>No results found</div>';
+                return;
+            }
+
+            data.results.forEach((item, index) => {
+                let div = document.createElement('div');
+                div.textContent = item.title || item.name;
+                div.dataset.index = index;
+                div.addEventListener('click', function() {
+                    titleInput.value = this.textContent;
+                    suggestionsBox.innerHTML = '';
+                });
+                suggestionsBox.appendChild(div);
+            });
+        });
+        
+        titleInput.addEventListener('keydown', function(event) {
+            let suggestions = document.querySelectorAll('.suggestions div');
+            if (event.key === 'ArrowDown') {
+                activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length;
+            } else if (event.key === 'ArrowUp') {
+                activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length;
+            } else if (event.key === 'Tab' || event.key === 'Enter') {
+                event.preventDefault();
+                if (activeSuggestionIndex >= 0 && activeSuggestionIndex < suggestions.length) {
+                    titleInput.value = suggestions[activeSuggestionIndex].textContent;
+                    suggestionsBox.innerHTML = '';
+                }
+            }
+            suggestions.forEach((suggestion, index) => {
+                suggestion.classList.toggle('active', index === activeSuggestionIndex);
+            });
+        });
+
+        document.getElementById('requestForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            let username = document.getElementById('username').value;
+            let type = document.getElementById('type').value;
+            let title = document.getElementById('title').value;
+
+            let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`;
+            let data = {
+                fields: {
+                    "Username": username,
+                    "Type": type,
+                    "Title": title
+                }
+            };
+
+            let response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${AIRTABLE_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                alert('Request submitted successfully!');
+                document.getElementById('requestForm').reset();
+                suggestionsBox.innerHTML = '';
+            } else {
+                alert('Error submitting request.');
+            }
+        });
+    </script>
+</body>
+</html>
