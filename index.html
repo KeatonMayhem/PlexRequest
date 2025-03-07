@@ -11,20 +11,23 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 300px;
-            margin: 50px auto;
+            max-width: 320px;
+            margin: 20px auto;
             text-align: center;
-            padding-bottom: 60px;
+            padding-bottom: 80px;
+            background-color: #f8f9fa;
+            color: #333;
         }
         input, select, button {
             display: block;
             width: 100%;
             margin: 10px 0;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 16px;
             box-sizing: border-box;
+            background: white;
         }
         select {
             appearance: none;
@@ -32,13 +35,21 @@
             cursor: pointer;
         }
         button {
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
             cursor: pointer;
             border: none;
+            font-weight: bold;
+            transition: background 0.3s;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #0056b3;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .suggestions {
             background: #fff;
@@ -73,26 +84,25 @@
         .suggestions div:hover, .suggestions div.active {
             background: #f8f9fa;
         }
-                /* Footer Styling */
-                footer {
+        footer {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            /*
             background: #222;
             color: white;
-            */
+            /*
             background: #e8ad20;
             color: #222;
+            */
             text-align: center;
             padding: 20px 0;
             display: flex;
             justify-content: space-around;
-            gap: 20px;
+            align-items: center;
         }
         footer a {
-            color: #222;
+            color: white;
             text-decoration: none;
             display: flex;
             align-items: center;
@@ -105,6 +115,7 @@
     </style>
 </head>
 <body>
+    <div class="container">
     <h2>Request a Movie or TV Show</h2>
     <form id="requestForm">
         <input type="text" id="username" placeholder="Your Name" required>
@@ -118,6 +129,7 @@
         </div>
         <button type="submit">Submit Request</button>
     </form>
+</div>
 
     <script>
         const API_KEY = 'ee4ae37187db41ea45a5ac3db2bfc34a';
