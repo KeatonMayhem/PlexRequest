@@ -20,7 +20,7 @@
         .suggestions {
             background: #fff;
             border: 1px solid #ccc;
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
             text-align: left;
             position: absolute;
@@ -30,9 +30,17 @@
             z-index: 1000;
         }
         .suggestions div {
+            display: flex;
+            align-items: center;
             padding: 10px;
             cursor: pointer;
             border-bottom: 1px solid #ddd;
+        }
+        .suggestions div img {
+            width: 40px;
+            height: 60px;
+            margin-right: 10px;
+            border-radius: 5px;
         }
         .suggestions div:hover, .suggestions div.active {
             background: #f0f0f0;
@@ -53,7 +61,7 @@
     </form>
 
     <script>
-        const API_KEY = 'YOUR_TMDB_API_KEY';
+        const API_KEY = 'ee4ae37187db41ea45a5ac3db2bfc34a';
         const AIRTABLE_API_KEY = 'YOUR_AIRTABLE_API_KEY';
         const AIRTABLE_BASE_ID = 'YOUR_AIRTABLE_BASE_ID';
         const AIRTABLE_TABLE_NAME = 'Requests';
@@ -83,10 +91,14 @@
 
             data.results.forEach((item, index) => {
                 let div = document.createElement('div');
-                div.textContent = item.title || item.name;
+                let title = item.title || item.name;
+                let year = item.release_date ? item.release_date.substring(0, 4) : (item.first_air_date ? item.first_air_date.substring(0, 4) : 'N/A');
+                let poster = item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : 'https://via.placeholder.com/40x60?text=?';
+                
+                div.innerHTML = `<img src="${poster}" alt="Poster"> <span>${title} (${year})</span>`;
                 div.dataset.index = index;
                 div.addEventListener('click', function() {
-                    titleInput.value = this.textContent;
+                    titleInput.value = title;
                     suggestionsBox.innerHTML = '';
                 });
                 suggestionsBox.appendChild(div);
