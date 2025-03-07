@@ -62,82 +62,88 @@
 
     <script>
         const API_KEY = 'ee4ae37187db41ea45a5ac3db2bfc34a';
-        const AIRTABLE_API_KEY = 'YOUR_AIRTABLE_API_KEY';
-        const AIRTABLE_BASE_ID = 'YOUR_AIRTABLE_BASE_ID';
-        const AIRTABLE_TABLE_NAME = 'Requests';
+        const AIRTABLE_API_KEY = 'patkOyWtQtdsrs6fh.4cb30297c0360d5ccaf252deec21ec0519038a7b714cdca48e1d533cf9d9ea5b';
+        const AIRTABLE_BASE_ID = 'appDlnjJz3JZDguTp';
+        const AIRTABLE_TABLE_NAME = 'tbl4dqkyZQ3sbgB7h';
+        const GENRE_MAP = {}; // Will be populated dynamically
 
-        let activeSuggestionIndex = -1;
-        const titleInput = document.getElementById('title');
-        const suggestionsBox = document.getElementById('suggestions');
+        async function fetchGenres() {
+            let movieGenres = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}`).then(res => res.json());
+            let tvGenres = await fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${API_KEY}`).then(res => res.json());
+            
+            [...movieGenres.genres, ...tvGenres.genres].forEach(genre => {
+                GENRE_MAP[genre.id] = genre.name;
+            });
+        }
+        fetchGenres();
         
-        titleInput.addEventListener('input', async function() {
+        let selectedItem = null;
+        
+        document.getElementById('title').addEventListener('input', async function() {
             let query = this.value;
             let type = document.getElementById('type').value;
             if (query.length < 2) {
-                suggestionsBox.innerHTML = '';
+                document.getElementById('suggestions').innerHTML = '';
                 return;
             }
             
             let endpoint = `https://api.themoviedb.org/3/search/${type}?api_key=${API_KEY}&query=${query}`;
             let response = await fetch(endpoint);
             let data = await response.json();
+            let suggestionsBox = document.getElementById('suggestions');
             suggestionsBox.innerHTML = '';
-            activeSuggestionIndex = -1;
-
-            if (data.results.length === 0) {
-                suggestionsBox.innerHTML = '<div>No results found</div>';
-                return;
-            }
-
-            data.results.forEach((item, index) => {
+            
+            data.results.forEach(item => {
                 let div = document.createElement('div');
-                let title = item.title || item.name;
                 let year = item.release_date ? item.release_date.substring(0, 4) : (item.first_air_date ? item.first_air_date.substring(0, 4) : 'N/A');
                 let poster = item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : 'https://via.placeholder.com/40x60?text=?';
+                let genres = item.genre_ids.map(id => GENRE_MAP[id] || 'Unknown').join(', ');
                 
-                div.innerHTML = `<img src="${poster}" alt="Poster"> <span>${title} (${year})</span>`;
-                div.dataset.index = index;
+                div.innerHTML = `<img src="${poster}" alt="Poster"> <span>${item.title || item.name} (${year})</span>`;
                 div.addEventListener('click', function() {
-                    titleInput.value = title;
+                    document.getElementById('title').value = item.title || item.name;
+                    selectedItem = item;
                     suggestionsBox.innerHTML = '';
                 });
                 suggestionsBox.appendChild(div);
             });
         });
         
-        titleInput.addEventListener('keydown', function(event) {
-            let suggestions = document.querySelectorAll('.suggestions div');
-            if (event.key === 'ArrowDown') {
-                activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length;
-            } else if (event.key === 'ArrowUp') {
-                activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length;
-            } else if (event.key === 'Tab' || event.key === 'Enter') {
-                event.preventDefault();
-                if (activeSuggestionIndex >= 0 && activeSuggestionIndex < suggestions.length) {
-                    titleInput.value = suggestions[activeSuggestionIndex].textContent;
-                    suggestionsBox.innerHTML = '';
-                }
-            }
-            suggestions.forEach((suggestion, index) => {
-                suggestion.classList.toggle('active', index === activeSuggestionIndex);
-            });
-        });
-
         document.getElementById('requestForm').addEventListener('submit', async function(event) {
             event.preventDefault();
+            if (!selectedItem) {
+                alert('Please select a title from the list.');
+                return;
+            }
+            
             let username = document.getElementById('username').value;
             let type = document.getElementById('type').value;
-            let title = document.getElementById('title').value;
-
+            let title = selectedItem.title || selectedItem.name;
+            let year = selectedItem.release_date ? selectedItem.release_date.substring(0, 4) : (selectedItem.first_air_date ? selectedItem.first_air_date.substring(0, 4) : 'N/A');
+            let tmdbID = selectedItem.id;
+            let genres = selectedItem.genre_ids.map(id => GENRE_MAP[id] || 'Unknown').join(', ');
+            let poster = selectedItem.poster_path ? `https://image.tmdb.org/t/p/w500${selectedItem.poster_path}` : '';
+            let overview = selectedItem.overview;
+            let popularity = selectedItem.popularity;
+            let language = selectedItem.original_language;
+            
             let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`;
             let data = {
                 fields: {
                     "Username": username,
                     "Type": type,
-                    "Title": title
+                    "Title": title,
+                    "Year": year,
+                    "TMDb ID":tmdbID,
+                    //"URL": "https://www.themoviedb.org/movie/"&tmdbID,
+                    //"Genres": genres,
+                    //"Poster URL": poster,
+                    //"Overview": overview,
+                    //"Popularity": popularity,
+                    //"Language": language
                 }
             };
-
+            
             let response = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -150,7 +156,7 @@
             if (response.ok) {
                 alert('Request submitted successfully!');
                 document.getElementById('requestForm').reset();
-                suggestionsBox.innerHTML = '';
+                selectedItem = null;
             } else {
                 alert('Error submitting request.');
             }
