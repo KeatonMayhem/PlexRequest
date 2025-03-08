@@ -100,6 +100,7 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
+            font-size: 14px;
         }
         footer a {
             color: white;
@@ -107,6 +108,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            font-size: 12px;
         }
         footer img {
             width: 24px;
@@ -222,9 +224,10 @@
             });
             
             if (response.ok) {
-                alert('Request submitted successfully!');
-                document.getElementById('requestForm').reset();
+                document.getElementById('title').value = '';
+                document.getElementById('suggestions').innerHTML = '';
                 selectedItem = null;
+                alert('Request submitted successfully!');
             } else {
                 alert('Error submitting request.');
             }
